@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# Clear log file on each start (only affects this add-on's log)
+: > /proc/1/fd/1
+: > /proc/1/fd/2
+echo "[INFO] Logs cleared on startup"
+
 APPLE_ID=$(jq -r '.apple_id' /data/options.json)
 PASSWORD=$(jq -r '.password' /data/options.json)
 DOWNLOAD_PATH=$(jq -r '.download_path' /data/options.json)
@@ -60,6 +65,7 @@ while true; do
             --password "$PASSWORD" \
             --cookie-directory "$COOKIE_DIR" \
             --no-progress-bar \
+			--verbose \
             $( [ "$AUTO_DELETE" = "true" ] && echo "--auto-delete" )
     fi
 
