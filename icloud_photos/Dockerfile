@@ -1,14 +1,14 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    tzdata libexif-dev ffmpeg jq && \
-    pip install --no-cache-dir icloudpd && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache bash git curl ttyd jq
 
 WORKDIR /app
+RUN git clone https://github.com/icloud-photos-downloader/icloud_photos_downloader.git
+WORKDIR /app/icloud_photos_downloader
+RUN pip install .
 
 COPY run.sh /run.sh
-RUN chmod a+x /run.sh
+RUN chmod +x /run.sh
 
+EXPOSE 7681
 CMD ["/run.sh"]
