@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.1] - 2025-08-25
+- fix: startup error due wrong EOL
+
 ## [1.0.0] - 2025-08-25
 - Initial release of iCloud Photos Downloader for Home Assistant
 - Downloads photos from iCloud using `icloudpd`
