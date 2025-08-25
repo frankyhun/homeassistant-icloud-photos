@@ -1,72 +1,43 @@
 #!/usr/bin/env bash
 set -e
 
-echo "---------------------------------------------------------------------------------"
+CONFIG_PATH=/data/options.json
+APPLE_ID=$(jq -r '.apple_id' "$CONFIG_PATH")
+PASSWORD=$(jq -r '.password' "$CONFIG_PATH")
+DOWNLOAD_PATH=$(jq -r '.download_path' "$CONFIG_PATH")
+MODE=$(jq -r '.mode' "$CONFIG_PATH")
+WATCH_INTERVAL=$(jq -r '.watch_interval' "$CONFIG_PATH")
+AUTO_DELETE=$(jq -r '.auto_delete' "$CONFIG_PATH")
+MFA_CODE=$(jq -r '.mfa_code' "$CONFIG_PATH")
 
-APPLE_ID=$(jq -r '.apple_id' /data/options.json)
-PASSWORD=$(jq -r '.password' /data/options.json)
-DOWNLOAD_PATH=$(jq -r '.download_path' /data/options.json)
-AUTO_DELETE=$(jq -r '.auto_delete' /data/options.json)
-AUTH_REFRESH_INTERVAL=$(jq -r '.auth_refresh_interval' /data/options.json)
+ARGS=(
+  --directory "$DOWNLOAD_PATH"
+  --username "$APPLE_ID"
+  --password "$PASSWORD"
+)
 
-COOKIE_DIR="/config/icloud_cookies"
-COOKIE_FILE="$COOKIE_DIR/$APPLE_ID/cookie"
-mkdir -p "$DOWNLOAD_PATH"
-mkdir -p "$COOKIE_DIR"
+if [ "$AUTO_DELETE" = "true" ]; then
+  ARGS+=(--auto-delete)
+fi
 
-check_cookie_expiry() {
-    if [ -f "$COOKIE_FILE" ]; then
-        # Extract expiry timestamp from cookie file
-        expiry=$(grep 'mfa' "$COOKIE_FILE" | awk '{print $5}' | sort | tail -1)
+# If MFA code is set, pass it to icloudpd
+if [ -n "$MFA_CODE" ] && [ "$MFA_CODE" != "null" ]; then
+  echo "[INFO] Using MFA code from config..."
+  ARGS+=(--auth-code "$MFA_CODE")
+fi
 
-        if [ -n "$expiry" ]; then
-            expiry_date=$(date -d @"$expiry" +%Y-%m-%d)
-            now=$(date +%s)
-            days_left=$(( (expiry - now) / 86400 ))
+# Select mode
+if [ "$MODE" = "watch" ]; then
+  echo "[INFO] Starting in watch mode (interval ${WATCH_INTERVAL}s)..."
+  exec icloudpd --watch-with-interval "$WATCH_INTERVAL" "${ARGS[@]}"
+else
+  echo "[INFO] Starting one-time download..."
+  exec icloudpd "${ARGS[@]}"
+fi
 
-            if [ "$days_left" -le 10 ]; then
-                echo "[WARN] iCloud cookie for $APPLE_ID expires in $days_left days (on $expiry_date)."
-                echo "[WARN] Add your password back into the add-on config soon to refresh authentication."
-            else
-                echo "[INFO] Cookie valid until $expiry_date ($days_left days left)."
-            fi
-        else
-            echo "[WARN] Could not determine cookie expiry."
-        fi
-    else
-        echo "[INFO] No cookie file found yet."
-    fi
-}
-
-while true; do
-    echo "[INFO] Syncing iCloud photos for $APPLE_ID..."
-
-    if [ -f "$COOKIE_FILE" ]; then
-        echo "[INFO] Using existing session cookie, password not required."
-        icloudpd \
-            --directory "$DOWNLOAD_PATH" \
-            --username "$APPLE_ID" \
-            --cookie-directory "$COOKIE_DIR" \
-            --no-progress-bar \
-            $( [ "$AUTO_DELETE" = "true" ] && echo "--auto-delete" )
-    else
-        if [ -z "$PASSWORD" ] || [ "$PASSWORD" = "null" ]; then
-            echo "[ERROR] No cookie found and no password provided. Please configure a password for first login."
-            exit 1
-        fi
-
-        echo "[INFO] First-time login, using password for authentication..."
-        icloudpd \
-            --directory "$DOWNLOAD_PATH" \
-            --username "$APPLE_ID" \
-            --password "$PASSWORD" \
-            --cookie-directory "$COOKIE_DIR" \
-            --no-progress-bar \
-            $( [ "$AUTO_DELETE" = "true" ] && echo "--auto-delete" )
-    fi
-
-    check_cookie_expiry
-
-    echo "[INFO] Sync complete. Sleeping for $AUTH_REFRESH_INTERVAL"
-    sleep $(echo $AUTH_REFRESH_INTERVAL | sed 's/h/*3600/' | bc)
-done
+# --- After successful login, clear MFA code from config ---
+if [ $? -eq 0 ] && [ -n "$MFA_CODE" ] && [ "$MFA_CODE" != "null" ]; then
+  echo "[INFO] Clearing MFA code from config..."
+  tmpfile=$(mktemp)
+  jq '.mfa_code=""' "$CONFIG_PATH" > "$tmpfile" && mv "$tmpfile" "$CONFIG_PATH"
+fi

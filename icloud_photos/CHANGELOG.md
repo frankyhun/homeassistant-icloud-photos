@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.7] - 2025-08-25
+- fix: password and MFA handling
+
 ## [1.0.6] - 2025-08-25
 - chore: verbose logging to address startup issues #3
 

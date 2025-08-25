@@ -1,6 +1,6 @@
 {
   "name": "iCloud Photos Downloader",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "slug": "icloud_photos",
   "description": "Download photos from iCloud to Home Assistant's media folder",
   "arch": ["aarch64", "amd64", "armv7"],
@@ -8,18 +8,22 @@
   "startup": "services",
   "boot": "auto",
   "options": {
-    "apple_id": "example@icloud.com",
+    "apple_id": "",
     "password": "",
-    "download_path": "/media/icloud",
-    "auto_delete": false,
-    "auth_refresh_interval": "12h"
+    "mfa_code": "",
+    "download_path": "/config/www/icloud",
+    "mode": "oneshot",
+    "watch_interval": 3600,
+    "auto_delete": false
   },
   "schema": {
     "apple_id": "str",
-    "password": "str?",
+    "password": "str",
+    "mfa_code": "str?",
     "download_path": "str",
-    "auto_delete": "bool",
-    "auth_refresh_interval": "str"
+    "mode": "list(oneshot|watch)",
+    "watch_interval": "int",
+    "auto_delete": "bool"
   },
   "map": ["media:rw", "share:rw", "config:rw"],
   "icon": "icon.png",
