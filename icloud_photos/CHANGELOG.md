@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.3] - 2025-08-25
+- fix: password and MFA handling
+
 ## [1.0.2] - 2025-08-25
 - fix: startup error due missing jq dependency
 
