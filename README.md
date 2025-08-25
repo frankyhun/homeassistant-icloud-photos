@@ -14,12 +14,14 @@ This add-on downloads your iCloud Photos into Home Assistant’s media folder, m
 https://github.com/frankyhun/homeassistant-icloud-photos
 2. Install **iCloud Photos Downloader**.
 3. Configure your Apple ID:
-
+```yaml
 apple_id: "yourname@icloud.com"
 download_path: "/media/icloud"
 auto_delete: false
 auth_refresh_interval: "12h"
+```
 Start the add-on.
+
 
 On first run, check the logs to enter your 2FA code.
 
@@ -27,5 +29,6 @@ On first run, check the logs to enter your 2FA code.
 Use an app-specific password instead of your iCloud main password.
 
 Photos will appear under Media → iCloud in Home Assistant.
+
 
 First sync may take a long time depending on your library size.
