@@ -1,6 +1,6 @@
 {
   "name": "iCloud Photos Downloader",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "slug": "icloud_photos",
   "description": "Download photos from iCloud to Home Assistant's media folder",
   "arch": ["aarch64", "amd64", "armv7"],

@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-
-# Logfile path inside Home Assistant /config folder
-LOGFILE="/config/icloudpd-addon.log"
-
-# Clear old logs at startup
-: > "$LOGFILE"
-
-# Redirect stdout & stderr both to logfile and Supervisor log
-exec > >(tee -a "$LOGFILE") 2>&1
+echo "---------------------------------------------------------------------------------"
 
 APPLE_ID=$(jq -r '.apple_id' /data/options.json)
 PASSWORD=$(jq -r '.password' /data/options.json)
@@ -70,7 +62,6 @@ while true; do
             --password "$PASSWORD" \
             --cookie-directory "$COOKIE_DIR" \
             --no-progress-bar \
-			--verbose \
             $( [ "$AUTO_DELETE" = "true" ] && echo "--auto-delete" )
     fi
 
