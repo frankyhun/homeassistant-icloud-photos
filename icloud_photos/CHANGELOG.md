@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.5] - 2025-08-25
+- chore: verbose logging to address startup issues #2
+
 ## [1.0.4] - 2025-08-25
 - chore: verbose logging to address startup issues
 

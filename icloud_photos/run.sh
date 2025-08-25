@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-# Clear log file on each start (only affects this add-on's log)
-: > /proc/1/fd/1
-: > /proc/1/fd/2
-echo "[INFO] Logs cleared on startup"
+
+# Logfile path inside Home Assistant /config folder
+LOGFILE="/config/icloudpd-addon.log"
+
+# Clear old logs at startup
+: > "$LOGFILE"
+
+# Redirect stdout & stderr both to logfile and Supervisor log
+exec > >(tee -a "$LOGFILE") 2>&1
 
 APPLE_ID=$(jq -r '.apple_id' /data/options.json)
 PASSWORD=$(jq -r '.password' /data/options.json)
